@@ -1,0 +1,46 @@
+<%= turbo_frame_tag dom_id(listing), class: "card-airbnb" do %>
+    <%= link_to listing_path(listing), class: "block" do %>
+      <!-- Image Carousel -->
+      <div class="relative aspect-square overflow-hidden">
+        <% if listing.photos.attached? %>
+          <div class="carousel-container" data-controller="carousel">
+            <% listing.photos.each_with_index do |photo, index| %>
+              <div class="carousel-item w-full">
+                <%= image_tag photo.variant(resize_to_limit: [600, 600]),
+                             class: "w-full h-full object-cover",
+                             alt: listing.title,
+                             loading: "lazy" %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="w-full h-full bg-airbnb-light-gray flex items-center justify-center">
+            <span class="text-airbnb-gray">No photos</span>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Listing Info -->
+      <div class="p-4">
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-semibold text-lg truncate flex-1"><%= listing.title %></h3>
+          <div class="flex items-center ml-2">
+            <svg class="w-4 h-4 text-airbnb-dark fill-current" viewBox="0 0 24 24">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <span class="ml-1 text-sm"><%= listing.average_rating || "New" %></span>
+          </div>
+        </div>
+
+        <p class="text-airbnb-gray text-sm mb-1"><%= listing.address %></p>
+        <p class="text-airbnb-gray text-sm mb-2">
+          <%= listing.bedrooms %> bed · <%= listing.bathrooms %> bath
+        </p>
+
+        <div class="flex items-baseline">
+          <span class="font-semibold text-lg">$<%= number_with_delimiter(listing.price_per_night) %></span>
+          <span class="text-airbnb-gray text-sm ml-1">night</span>
+        </div>
+      </div>
+    <% end %>
+  <% end %>

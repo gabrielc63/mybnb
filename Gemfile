@@ -44,7 +44,7 @@ gem "devise", "~> 4.9"
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"  # For Active Storage variants
 
-gem "pagy", "~> 6.0"               # Lightweight pagination
+gem "pagy", "~> 9.3" # Lightweight pagination
 gem "view_component", "~> 3.0"    # Component-based views
 
 group :development, :test do
