@@ -8,6 +8,7 @@ class ListingsController < ApplicationController
   end
 
   def search
+    binding.break
     @listings = Listing.all
     @listings = @listings.where("title ILIKE ? OR address ILIKE ?", "%#{params[:query]}%", "%#{params[:query]}%") if params[:query].present?
     @listings = @listings.price_range(params[:min_price], params[:max_price]) if params[:min_price] && params[:max_price]
