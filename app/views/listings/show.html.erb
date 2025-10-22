@@ -1,4 +1,215 @@
-<div>
-  <h1 class="font-bold text-4xl">Listings#show</h1>
-  <p>Find me in app/views/listings/show.html.erb</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Title and Location -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-semibold mb-2"><%= @listing.title %></h1>
+    <div class="flex items-center gap-4 text-sm">
+      <div class="flex items-center">
+        <svg class="w-4 h-4 text-black fill-current mr-1" viewBox="0 0 24 24">
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+        <span class="font-semibold"><%= @listing.average_rating > 0 ? @listing.average_rating : "New" %></span>
+      </div>
+      <span class="text-gray-600">·</span>
+      <span class="font-semibold underline">
+        <%= pluralize(@listing.reviews.count, "review") %>
+      </span>
+      <span class="text-gray-600">·</span>
+      <span class="font-semibold underline"><%= @listing.address %></span>
+    </div>
+  </div>
+
+  <!-- Image Gallery -->
+  <div class="mb-8">
+    <% if @listing.photos.attached? %>
+      <div class="grid grid-cols-4 grid-rows-2 gap-2 rounded-xl overflow-hidden h-[500px]">
+        <!-- Main large image -->
+        <div class="col-span-2 row-span-2">
+          <%= image_tag @listing.photos.first.variant(resize_to_limit: [800, 800]),
+                       class: "w-full h-full object-cover hover:brightness-95 transition cursor-pointer",
+                       alt: @listing.title %>
+        </div>
+
+        <!-- Grid of smaller images -->
+        <% @listing.photos[1..4]&.each_with_index do |photo, index| %>
+          <div class="col-span-1 row-span-1 <%= 'rounded-tr-xl' if index == 1 %> <%= 'rounded-br-xl' if index == 3 %>">
+            <%= image_tag photo.variant(resize_to_limit: [400, 400]),
+                         class: "w-full h-full object-cover hover:brightness-95 transition cursor-pointer",
+                         alt: @listing.title %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Show all photos button -->
+      <% if @listing.photos.count > 5 %>
+        <button class="mt-4 px-4 py-2 border border-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">
+          Show all <%= @listing.photos.count %> photos
+        </button>
+      <% end %>
+    <% else %>
+      <div class="w-full h-[500px] bg-gray-200 rounded-xl flex items-center justify-center">
+        <span class="text-gray-500">No photos available</span>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
+    <!-- Left Column: Details -->
+    <div class="lg:col-span-2">
+      <!-- Host and Property Info -->
+      <div class="pb-8 border-b border-gray-200">
+        <h2 class="text-2xl font-semibold mb-2">
+          <%= @listing.property_type.titleize %> hosted by <%= @listing.user.email.split('@').first.titleize %>
+        </h2>
+        <div class="flex gap-2 text-gray-700">
+          <span><%= pluralize(@listing.max_guests, "guest") %></span>
+          <span>·</span>
+          <span><%= pluralize(@listing.bedrooms, "bedroom") %></span>
+          <span>·</span>
+          <span><%= pluralize(@listing.bathrooms, "bathroom") %></span>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="py-8 border-b border-gray-200">
+        <h3 class="text-xl font-semibold mb-4">About this place</h3>
+        <p class="text-gray-700 leading-relaxed whitespace-pre-line"><%= @listing.description %></p>
+      </div>
+
+      <!-- Reviews Section -->
+      <% if @reviews.any? %>
+        <div class="py-8 border-b border-gray-200">
+          <div class="flex items-center gap-2 mb-6">
+            <svg class="w-5 h-5 text-black fill-current" viewBox="0 0 24 24">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <h3 class="text-2xl font-semibold">
+              <%= @listing.average_rating > 0 ? @listing.average_rating : "New" %> ·
+              <%= pluralize(@reviews.count, "review") %>
+            </h3>
+          </div>
+
+          <!-- Reviews Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+            <% @reviews.limit(6).each do |review| %>
+              <div class="flex flex-col gap-3">
+                <div class="flex items-start gap-3">
+                  <!-- Avatar -->
+                  <div class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center font-semibold flex-shrink-0">
+                    <%= review.user.email.first.upcase %>
+                  </div>
+
+                  <div class="flex-1">
+                    <div class="font-semibold"><%= review.user.email.split('@').first.titleize %></div>
+                    <div class="text-sm text-gray-500"><%= review.created_at.strftime("%B %Y") %></div>
+                  </div>
+                </div>
+
+                <!-- Rating Stars -->
+                <div class="flex items-center">
+                  <% review.rating.times do %>
+                    <svg class="w-4 h-4 text-black fill-current" viewBox="0 0 24 24">
+                      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                  <% end %>
+                  <% (5 - review.rating).times do %>
+                    <svg class="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                  <% end %>
+                </div>
+
+                <!-- Comment -->
+                <p class="text-gray-700 line-clamp-3"><%= review.comment %></p>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Show all reviews button -->
+          <% if @reviews.count > 6 %>
+            <button class="px-6 py-3 border border-gray-800 rounded-lg font-semibold hover:bg-gray-50 transition">
+              Show all <%= @reviews.count %> reviews
+            </button>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="py-8 border-b border-gray-200">
+          <h3 class="text-2xl font-semibold mb-4">No reviews yet</h3>
+          <p class="text-gray-600">Be the first to review this listing!</p>
+        </div>
+      <% end %>
+
+      <!-- Map placeholder -->
+      <div class="py-8">
+        <h3 class="text-xl font-semibold mb-4">Where you'll be</h3>
+        <div class="w-full h-[400px] bg-gray-200 rounded-xl flex items-center justify-center">
+          <span class="text-gray-500"><%= @listing.address %></span>
+        </div>
+        <p class="mt-4 text-gray-700"><%= @listing.address %></p>
+      </div>
+    </div>
+
+    <!-- Right Column: Booking Card (Sticky) -->
+    <div class="lg:col-span-1">
+      <div class="sticky top-24 border border-gray-300 rounded-xl shadow-xl p-6">
+        <!-- Price -->
+        <div class="mb-6">
+          <div class="flex items-baseline gap-1">
+            <span class="text-2xl font-semibold">$<%= number_with_delimiter(@listing.price_per_night) %></span>
+            <span class="text-gray-600">night</span>
+          </div>
+          <% if @listing.average_rating > 0 %>
+            <div class="flex items-center gap-2 mt-1 text-sm">
+              <svg class="w-4 h-4 text-black fill-current" viewBox="0 0 24 24">
+                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+              </svg>
+              <span class="font-semibold"><%= @listing.average_rating %></span>
+              <span class="text-gray-600">·</span>
+              <span class="underline text-gray-600"><%= pluralize(@listing.reviews.count, "review") %></span>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Booking Form -->
+        <%= form_with model: @booking, url: listing_bookings_path(@listing), class: "space-y-4" do |f| %>
+          <div class="grid grid-cols-2 border border-gray-400 rounded-lg overflow-hidden">
+            <div class="p-3 border-r border-b border-gray-400">
+              <label class="text-xs font-bold">CHECK-IN</label>
+              <%= f.date_field :start_date, class: "w-full border-0 p-0 text-sm focus:ring-0", required: true %>
+            </div>
+            <div class="p-3 border-b border-gray-400">
+              <label class="text-xs font-bold">CHECKOUT</label>
+              <%= f.date_field :end_date, class: "w-full border-0 p-0 text-sm focus:ring-0", required: true %>
+            </div>
+            <div class="col-span-2 p-3">
+              <label class="text-xs font-bold">GUESTS</label>
+              <%= f.number_field :guests_amount, min: 1, max: @listing.max_guests, value: 1,
+                                 class: "w-full border-0 p-0 text-sm focus:ring-0", required: true %>
+              <div class="text-xs text-gray-500 mt-1">Max <%= @listing.max_guests %> guests</div>
+            </div>
+          </div>
+
+          <%= f.submit "Reserve", class: "w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold py-3 rounded-lg transition cursor-pointer" %>
+        <% end %>
+
+        <p class="text-center text-sm text-gray-600 mt-4">You won't be charged yet</p>
+
+        <!-- Price breakdown placeholder -->
+        <div class="mt-6 space-y-3">
+          <div class="flex justify-between text-sm">
+            <span class="underline">$<%= number_with_delimiter(@listing.price_per_night) %> x 5 nights</span>
+            <span>$<%= number_with_delimiter(@listing.price_per_night * 5) %></span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="underline">Service fee</span>
+            <span>$<%= number_with_delimiter((@listing.price_per_night * 5 * 0.15).round) %></span>
+          </div>
+          <div class="border-t border-gray-300 pt-3 flex justify-between font-semibold">
+            <span>Total</span>
+            <span>$<%= number_with_delimiter((@listing.price_per_night * 5 * 1.15).round) %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

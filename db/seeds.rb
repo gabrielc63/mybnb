@@ -9,8 +9,8 @@
 #   end
 
 puts "Cleaning database..."
-  # Review.destroy_all
-  # Booking.destroy_all
+  Review.destroy_all
+  Booking.destroy_all
   Listing.destroy_all
   User.destroy_all
 
@@ -241,6 +241,116 @@ puts "Cleaning database..."
       )
 
       listings_created += 1
-      puts "  Created listing #{listings_created}: #{listing.title} in #{location[:city]} ($#{listing.price_per_night}/night)"
+      puts "  Created listing #{listings_created}: #{listing.title} in #{location[:city]} ($#{listing.price_per_night}/night) with #{listing.photos.count} photos"
     end
   end
+
+  # Create some bookings
+  all_listings = Listing.all
+  bookings_created = 0
+
+  50.times do
+    listing = all_listings.sample
+    guest = ([ demo_user ] + hosts).sample
+
+    # Skip if guest is the host of the listing
+    next if guest == listing.user
+
+    # Determine status first to set appropriate dates
+    status = [ :pending, :confirmed, :completed, :cancelled, :rejected ].sample
+
+    # For completed bookings, use past dates; for others, use future dates
+    if status == :completed
+      start_date = Faker::Date.between(from: 60.days.ago, to: 10.days.ago)
+    else
+      start_date = Faker::Date.between(from: Date.today, to: 60.days.from_now)
+    end
+
+    duration = rand(2..10)
+    end_date = start_date + duration.days
+
+    booking = Booking.new(
+      user: guest,
+      listing: listing,
+      start_date: start_date,
+      end_date: end_date,
+      guests_amount: rand(1..listing.max_guests),
+      special_requests: [ nil, "Early check-in please", "Need parking space", "Celebrating anniversary" ].sample,
+      status: status,
+      final_price: listing.price_per_night * duration
+    )
+
+    # For completed bookings with past dates, save without validation to bypass date validation
+    # For cancelled/rejected, also skip validation as they might overlap (but that's okay)
+    if (status == :completed && start_date < Date.today) || [ :cancelled, :rejected ].include?(status)
+      booking.save(validate: false)
+      bookings_created += 1
+      puts "  Created booking #{bookings_created}: #{booking.listing.title} for #{booking.user.name} (#{status})"
+    else
+      # For pending/confirmed bookings, validate to prevent overlaps
+      if booking.save
+        bookings_created += 1
+        puts "  Created booking #{bookings_created}: #{booking.listing.title} for #{booking.user.name} (#{status})"
+      else
+        # Skip this booking if it overlaps with existing ones
+        puts "  Skipped overlapping booking for #{listing.title}"
+      end
+    end
+  end
+
+  puts "\nCreating reviews..."
+
+  # Create reviews for completed bookings
+  completed_bookings = Booking.where(status: :completed)
+  reviews_created = 0
+
+  completed_bookings.each do |booking|
+    next if rand > 0.7 # Only 70% of completed bookings have reviews
+
+    review_comments = [
+      "Amazing place! Everything was as described and the host was very responsive. Would definitely stay again!",
+      "Great location and beautiful property. Very clean and comfortable. Highly recommend!",
+      "Perfect getaway spot. The photos don't do it justice - it's even better in person!",
+      "Wonderful stay! The place had everything we needed and more. Very convenient location.",
+      "Lovely property with great amenities. The host was super helpful and accommodating.",
+      "Excellent experience overall. Clean, comfortable, and exactly what we were looking for.",
+      "Beautiful space in a great neighborhood. Would love to come back!",
+      "Very nice property! Well-maintained and the check-in process was smooth.",
+      "Fantastic location and the property exceeded our expectations. Highly recommended!",
+      "Had a great time! The place was spotless and had all the comforts of home."
+    ]
+
+    review = Review.create!(
+      user: booking.user,
+      listing: booking.listing,
+      rating: rand(3..5),
+      comment: review_comments.sample
+    )
+
+    reviews_created += 1
+    puts "  Created review #{reviews_created}: #{review.rating} stars for #{review.listing.title}"
+  end
+
+  puts "\n" + "="*50
+  puts "Seed data created successfully!"
+  puts "="*50
+  puts "Users created: #{User.count}"
+  puts "  - Hosts: #{hosts.count}"
+  puts "  - Demo user: #{demo_user.email} / password123"
+  puts "Listings created: #{Listing.count}"
+  puts "  - Houses: #{Listing.where(property_type: :house).count}"
+  puts "  - Apartments: #{Listing.where(property_type: :apartment).count}"
+  puts "  - Villas: #{Listing.where(property_type: :villa).count}"
+  puts "  - Cabins: #{Listing.where(property_type: :cabin).count}"
+  puts "  - Guesthouses: #{Listing.where(property_type: :guesthouse).count}"
+  puts "  - Hotels: #{Listing.where(property_type: :hotel).count}"
+  puts "Bookings created: #{Booking.count}"
+  puts "Reviews created: #{Review.count}"
+  puts "="*50
+  puts "\nYou can login with:"
+  puts "  Email: demo@mybnb.com"
+  puts "  Password: password123"
+  puts "\nOr any host account:"
+  puts "  Email: host1@mybnb.com (through host10@mybnb.com)"
+  puts "  Password: password123"
+  puts "="*50

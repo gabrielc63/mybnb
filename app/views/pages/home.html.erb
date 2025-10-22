@@ -1,2 +1,40 @@
 
-<h1 class="text-gray-300">New Project</h1>
+<div class="bg-airbnb-light-gray min-h-screen">
+  <!-- Hero Section -->
+  <div class="relative h-96 bg-gradient-to-r from-airbnb-rausch to-pink-600">
+    <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+      <h1 class="text-5xl md:text-6xl font-bold mb-6">Find your next adventure</h1>
+      <p class="text-xl md:text-2xl mb-8">Discover amazing places to stay around the world</p>
+
+      <%= link_to "Explore listings", listings_path, class: "btn-secondary !text-white !border-white hover:!bg-white/20" %>
+    </div>
+  </div>
+
+  <!-- Featured Listings -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <h2 class="text-3xl font-bold mb-8">Featured stays</h2>
+
+    <%= turbo_frame_tag "featured_listings" do %>
+      <div class="listings-grid">
+        <%= render @featured_listings %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Categories Section -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <h2 class="text-3xl font-bold mb-8">Browse by property type</h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <% Listing.property_types.keys.each do |type| %>
+        <%= link_to listings_path(property_type: type),
+          class: "card-airbnb p-6 text-center" do %>
+          <div class="text-4xl mb-2">
+            <%= property_type_icon(type) %>
+          </div>
+          <h3 class="font-semibold capitalize"><%= type %></h3>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>
