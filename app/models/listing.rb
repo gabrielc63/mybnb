@@ -1,7 +1,7 @@
 class Listing < ApplicationRecord
   belongs_to :user
   # has_many :bookings, dependent: :destroy
-  # has_many :reviews, dependent: :destroy
+  has_many :reviews, dependent: :destroy
   has_many_attached :photos
 
   enum :property_type, {
@@ -33,6 +33,6 @@ class Listing < ApplicationRecord
   }
 
   def average_rating
-    # reviews.average(:rating).to_f.round(2)
+    reviews.average(:rating).to_f.round(2)
   end
 end
