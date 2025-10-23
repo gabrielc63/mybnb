@@ -45,7 +45,7 @@ gem "devise", "~> 4.9"
 gem "image_processing", "~> 1.2"  # For Active Storage variants
 
 gem "pagy", "~> 9.3" # Lightweight pagination
-gem "view_component", "~> 3.0"    # Component-based views
+gem "view_component", "~> 4.1"    # Component-based views
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
